@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Class Page</title>
+<link href="style.css" rel="stylesheet" type="text/css">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+     <meta name="google-adsense-account" content="ca-pub-5208621179282095">
+</head>
+
+<body>
+  <div class="modal-panel">
+  </div>
+	<header><h4 id="name">Name</h4><h1 id="classTitle">Arabic</h1></header>
+        <div class="main-panel">
+        	<div class="f-panel">
+            	<div class="f-item" id="preview"></div>
+                <div class="s-item" id="preview-control"></div>
+            </div>
+            <div class="s-panel" id="targetDiv1" onscroll="handleScroll(this)">
+            	<!-- <div class="t-item"></div> -->
+            </div>
+            <div class="t-panel" id="t-panel">
+            	<div class="fo-item" id="chat" onscroll="handleScroll(this)"></div>
+                <div class="fi-item">
+                	<!-- <form action="/class.html" method="post"> -->
+                    	<input type="text" class="chat" name="chatMessage" id="message" required>
+                        <input type="submit" class="chat-btn" name="chatBtn" value="Send" id="chatBtn">
+                    <!-- </form> -->
+                </div>
+            </div>
+        </div>
+    <footer>&copy; generalclass.net</footer>
+</body>
+<script>
+</script>
+</html>
+<script>
+    function handleScroll(container) {
+      if (container.scrollHeight > container.clientHeight) {
+        container.style.overflowY = 'scroll';
+      } else {
+        container.style.overflowY = 'auto';
+      }
+    }
+  </script>
+<script src="engine.js"></script>
+<script src="adapter-latest.js"></script>

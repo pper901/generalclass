@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Student Class Page</title>
+<link href="style.css" rel="stylesheet" type="text/css">
+     <meta name="google-adsense-account" content="ca-pub-5208621179282095">
+</head>
+
+<body>
+	<header>
+    	<div class="logo">
+        	<a href="/"><img src="generalClass.png" id="logo"></a>
+        </div>
+    </header>
+    <div class="main-panel1">
+        <script>
+            fetch("getAllClasses", {
+                method: "GET"
+            }).then(response => response.json())
+            .then(data => {
+                console.log("got a data", data);
+                var mainP = document.querySelector(".main-panel1"); 
+                if (data.hasOwnProperty("allclasses")) {
+                    var classes = data["allclasses"];
+                    var htmlString = "";
+                    for (let i = 0; i < classes.length; i++) {
+                        htmlString += '<form action="" method="post" class="s-form">' +
+                                    '<label>Class Name:</label>' +
+                                    '<input type="text" class="in-box" name="className" value="' + classes[i] + '" readonly>' +
+                                    '<label>Name:</label>' +
+                                    '<input type="text" class="in-box" name="stuName" required>' +
+                                    '<input type="submit" name="joinClass" class="j-btn" value="Join A Class">' +
+                                    '</form>';
+                    }
+                    mainP.innerHTML = htmlString;
+                } else {
+                    mainP.innerHTML = "<h3 id='no-class'>No Class available</h3>";
+                }
+            }).catch(error => console.error('Error fetching data:', error));
+        </script>
+    
+        </div>
+    <footer>&copy; generalclass.net</footer>
+</body>
+</html>

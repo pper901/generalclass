@@ -1,0 +1,207 @@
+//populate the map with the content of the header
+    public void populateTheMap() throws IOException{
+        String line;
+        StringBuilder requestBody = new StringBuilder();
+        String method = getTheMethod();
+
+        // int totalRead = 0;
+        // char[] buffer = new char[5028];
+        // int bytesRead;
+        // Read the HTTP request headers
+        while ((line = br.readLine()) != null && !line.isEmpty()) {
+            requestBody.append(line).append("\r\n");
+        }
+
+        if(!method.equals("GET")){
+            int contentLength = getContentLength(requestBody.toString());
+            char[] body = new char[contentLength];
+            br.read(body);
+            //populate the map with content of requestBody
+            String rB = new String(body);  
+            System.out.println("Rget: "+rB);   
+            String[] rs = rB.split("\n");
+            String nameValue = null;
+            String message = null;
+            String offer = null;
+            String answer = null;
+            String ice = null;
+            String Nullname = null;
+            String ready = null;
+            String Aready = null;
+            for (int n=0; n < rs.length; n++) {
+                String[] sline = rs[n].split(" ");
+                
+                if (sline.length >= 2) {
+                    if (sline[0].equals("Name:")) {
+                        StringBuilder nameBuilder = new StringBuilder(sline[1]);
+                        for (int i = 2; i < sline.length; i++) {
+                            nameBuilder.append(" ").append(sline[i]);
+                        }
+                        nameValue = nameBuilder.toString();
+                    } else if(sline[0].equals("Message:")){
+                        StringBuilder messageBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            messageBuilder.append(" ").append(sline[i]);
+                        }
+                        message = messageBuilder.toString();
+                    }else if(sline[0].equals("Offer:")){
+                        System.out.println("Found an offer, Populating..."+sline.length);
+                        StringBuilder offerBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            offerBuilder.append(" ").append(sline[i]);
+                        }
+                        offer = offerBuilder.toString();
+                        
+                        // System.out.println("final offer: "+offer);
+                    }else if(sline[0].equals("Answer:")){
+                        StringBuilder ansBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            ansBuilder.append(" ").append(sline[i]);
+                        }
+                        answer = ansBuilder.toString();
+                    }else if(sline[0].equals("ICE:")){
+                        StringBuilder iceBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            iceBuilder.append(" ").append(sline[i]);
+                        }
+                        ice = iceBuilder.toString();
+                    }else if(sline[0].equals("null:")){
+                        StringBuilder nullBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            nullBuilder.append(" ").append(sline[i]);
+                        }
+                        Nullname = nullBuilder.toString();
+                    }else if(sline[0].equals("ready:")){
+                        StringBuilder readyBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            readyBuilder.append(" ").append(sline[i]);
+                        }
+                        ready = readyBuilder.toString();
+                    }else if(sline[0].equals("Answerready:")){
+                        System.out.println("found the Answerready");
+                        StringBuilder AreadyBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            AreadyBuilder.append(" ").append(sline[i]);
+                        }
+                        Aready = AreadyBuilder.toString();
+                    }else{
+                        this.map.put(sline[0], sline[1]);
+                    }
+                } else {
+                    this.map.put("Content", sline[0]);
+                }
+            }
+
+            if (nameValue != null) {
+                this.map.put("Name:", nameValue);
+            }else if(message != null){
+                this.map.put("Message:", message);
+            }else if(offer != null){
+                this.map.put("Offer:", offer);
+            }else if(answer != null){
+                this.map.put("Answer:", answer);
+            }else if(ice != null){
+                this.map.put("ICE:", ice);
+            }else if(Nullname != null){
+                this.map.put("null:", Nullname);
+            }else if(ready != null){
+                this.map.put("ready:", ready);
+            }else if(Aready != null){
+                System.out.println("Putting the Aready inside map"+Aready);
+                this.map.put("Answerready:", Aready);
+            }
+
+            }else{
+                int contentLength = getContentLength(requestBody.toString());
+                System.out.println("The contentlength is "+contentLength);
+                char[] body = new char[contentLength];
+                br.read(body);
+                //populate the map with content of requestBody
+            String rB = new String(body); 
+            System.out.println("Rget: "+rB);   
+            String[] rs = rB.split("\n");
+            String nameValue = null;
+            String message = null;
+            String offer = null;
+            String answer = null;
+            String ice = null;
+            String Nullname = null;
+            String ready = null;
+            for (int n=0; n < rs.length; n++) {
+                String[] sline = rs[n].split(" ");
+                
+                if (sline.length >= 2) {
+                    if (sline[0].equals("Name:")) {
+                        StringBuilder nameBuilder = new StringBuilder(sline[1]);
+                        for (int i = 2; i < sline.length; i++) {
+                            nameBuilder.append(" ").append(sline[i]);
+                        }
+                        nameValue = nameBuilder.toString();
+                    } else if(sline[0].equals("Message:")){
+                        StringBuilder messageBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            messageBuilder.append(" ").append(sline[i]);
+                        }
+                        message = messageBuilder.toString();
+                    }else if(sline[0].equals("Offer:")){
+                        StringBuilder offerBuilder = new StringBuilder(sline[1]);
+                        // System.out.println("Found an offer, Populating...");
+                        for(int i = 2; i < sline.length; i++){
+                            System.out.println("adding for length: "+i);
+                            offerBuilder.append(" ").append(sline[i]);
+                        }
+                        offer = offerBuilder.toString();
+                        
+                        System.out.println("final offer: "+offer);
+                    }else if(sline[0].equals("Answer:")){
+                        StringBuilder ansBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            ansBuilder.append(" ").append(sline[i]);
+                        }
+                        answer = ansBuilder.toString();
+                    }else if(sline[0].equals("ICE:")){
+                        StringBuilder iceBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            iceBuilder.append(" ").append(sline[i]);
+                        }
+                        ice = iceBuilder.toString();
+                    }else if(sline[0].equals("null:")){
+                        StringBuilder nullBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            nullBuilder.append(" ").append(sline[i]);
+                        }
+                        Nullname = nullBuilder.toString();
+                    }else if(sline[0].equals("ready:")){
+                        StringBuilder readyBuilder = new StringBuilder(sline[1]);
+                        for(int i = 2; i < sline.length; i++){
+                            readyBuilder.append(" ").append(sline[i]);
+                        }
+                        ready = readyBuilder.toString();
+                    }else{
+                        this.map.put(sline[0], sline[1]);
+                    }
+                } else {
+                    System.out.println("The content is "+sline[0]);
+                    this.map.put("Content", sline[0]);
+                }
+            }
+
+            if (nameValue != null) {
+                this.map.put("Name:", nameValue);
+            }else if(message != null){
+                this.map.put("Message:", message);
+            }else if(offer != null){
+                this.map.put("Offer:", offer);
+            }else if(answer != null){
+                this.map.put("Answer:", answer);
+            }else if(ice != null){
+                this.map.put("ICE:", ice);
+            }else if(Nullname != null){
+                this.map.put("null:", Nullname);
+            }else if(ready != null){
+                this.map.put("ready:", ready);
+            }
+
+            }
+
+    }

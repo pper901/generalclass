@@ -1,0 +1,374 @@
+/*
+ *  Copyright (c) 2021 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+ *  When the lecturer login
+ *  1)Get the name
+ *  2)Send the name and the title to the server with json.stringify
+ *  3)The server responds with a unique id; save the id
+ * 
+ *  2)start peer connection and create offer
+ *  3)create a json object 
+ *  4)add the id and the offer created to the json object
+ *  5)send the stringify json object to the server
+ *  6)get the response
+ */
+
+'use strict';
+
+const configuration = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    }
+  ]
+};
+
+const prot = window.location.protocol;
+const host = window.location.host;
+
+var sidePanel = document.getElementById("targetDiv1");
+
+//1)Get the name 
+const nm = document.getElementsByTagName("header")[0].textContent;
+
+//2)send the name and title to the server
+let jsonObject = {name: nm, title: "Lecturer"};
+sendMessage(JSON.stringify(jsonObject));
+
+
+//set the id after recieving it
+let id;
+
+// Function to send a message to the server using long polling
+async function sendMessage(message) {
+  const url = prot + "//" + host;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'plain/text',
+    },
+    body: message,
+  });
+  
+  console.log('Message sent successfully');
+  if (response.ok) {
+    let msg = await response.text(); 
+    console.log("Recieved response: "+msg);
+
+
+    // if(msg.startsWith("{\"icelist")){
+      const icelistQueue = extractIcelistValues(msg);
+      console.log(icelistQueue);
+      
+      // Example iteration through the icelist queue
+      while (icelistQueue.length > 0) {
+        const icelistValue = icelistQueue.shift();
+        console.log("printing the first"+icelistValue);
+        processResponse(icelistValue);
+      }
+    // }else{  
+       processResponse(msg);
+    // }
+
+  } else {
+    console.error('Failed to send message');
+  }
+ }
+
+ function processResponse(response){
+  console.log(response);
+
+  const res = JSON.parse(response);
+  console.log("The object length is "+Object.keys(res).length);
+  console.log(res);
+  for (let key in res) {
+    let result = extractValuesByKey(response, key);
+    console.log("The result i got from extraction is: "+result);
+    if (res.hasOwnProperty(key)) {
+        switch(key){
+          case "id":
+            if(id == null){
+              id = res[key];
+              var newDiv = document.createElement("div");
+              newDiv.className = "t-item";
+              newDiv.textContent = nm;
+              sidePanel.appendChild(newDiv);
+            }
+            break;
+          case "noMessage":
+              break;
+          case "list":
+            
+            while(result.length > 0){
+              var resi = result.shift();
+              var rest = resi.split(",");
+              for(var i=0; i<rest.length; i++){
+                var newDiv = document.createElement("div");
+                newDiv.className = "t-item";
+                newDiv.textContent = rest[i];
+                sidePanel.appendChild(newDiv);
+                console.log(newDiv);
+              }
+            }
+            break;
+          case "newUser":
+
+            while(result.length > 0){
+              var resi = result.shift();
+              console.log("new user arrived");
+              var newDiv = document.createElement("div");
+                newDiv.className = "t-item";
+                newDiv.textContent = resi;
+                sidePanel.appendChild(newDiv);
+            }
+              break;
+          case "chatMessage":
+            while(result.length > 0){
+              var resi = result.shift();
+              const chat = document.getElementById("chat");
+              const pElement = document.createElement("p");
+              pElement.textContent = resi;
+              chat.appendChild(pElement);
+            }
+            break;
+          case "chatlist":
+            while(result.length > 0){
+              var resi = result.shift(); 
+              var rest = resi.split(",");
+              for(var i=0; i<rest.length; i++){
+                const chat = document.getElementById("chat");
+                const pElement = document.createElement("p");
+                pElement.textContent = rest[i];
+                chat.appendChild(pElement);
+              }
+            }
+            break;
+          case "type":
+            if(res[key] == "offer"){
+              let details = {type: res.type, sdp: res.sdp};
+              handleOffer(details);
+            }else if(res[key] == "candidate"){
+              let details = {type: res.type, candidate: res.candidate, sdpMid: res.sdpMid, sdpMLineIndex: res.sdpMLineIndex};
+              handleIce(details);
+            }else if(res[key] == "answer"){
+              let answerDetails = {type: 'answer', sdp: res.sdp};
+              handleAnswer(answerDetails);
+            }
+            break;
+          case "icelist":
+              var rest = res[key];
+              while (rest.length > 0) {
+                console.log("handling ice from ice list"+ JSON.stringify(rest[0]));
+                  handleIce(rest[0]);
+                  rest.shift();
+              }
+            break; 
+          case "ready":
+            
+            createPeerConnection(res[key]);
+            makeCall(res[key]);
+            break;
+        }
+    }
+  }
+           
+  let noMessage = {id: id, getMessage: "getNewMessage"};
+  if(id != null){
+    setTimeout(()=>sendMessage(JSON.stringify(noMessage)), 5000);
+  }
+ }
+
+ async function setMessage(){
+    const chat = document.getElementById("chat");
+    const pElement = document.createElement("p");
+    let message = document.getElementById("message").value;
+    pElement.textContent = nm+": "+message;
+    chat.appendChild(pElement);
+    let jOb = {id: id, chatMessage: nm+": "+message};
+    sendMessage(JSON.stringify(jOb));
+
+    // Clear the input field
+    document.getElementById("message").value = "";
+  }
+
+const box = document.getElementById("preview-control");
+
+// Create "Start" button
+const start = document.createElement("button");
+start.setAttribute("id", "startButton");
+start.title = "Start";  // Use '=' to set the title property
+start.textContent = "Start";  // Use '=' to set the text content
+box.appendChild(start);
+
+// Create "Hangup" button
+const hang = document.createElement("button");
+hang.setAttribute("id", "hangupButton");
+hang.title = "Hangup";  // Use '=' to set the title property
+hang.textContent = "Hangup";  // Use '=' to set the text content
+box.appendChild(hang);
+  
+
+const startButton = document.getElementById('startButton');
+const hangupButton = document.getElementById('hangupButton');
+hangupButton.disabled = true;
+
+const videoHost = document.getElementById("preview");
+const lVideo = document.createElement("video");
+lVideo.setAttribute("id", "video");
+videoHost.appendChild(lVideo);
+
+const localVideo = document.getElementById('video');
+const remoteVideo = document.getElementById('remoteVideo');
+
+let pc;
+let localStream;
+
+let iceCandidateQueue = [];
+let isAnswerSet = false;
+
+startButton.onclick = async () => {
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+      localVideo.srcObject = localStream;
+      localVideo.play();
+  
+      startButton.disabled = true;
+      hangupButton.disabled = false;
+
+      console.log("Ready to send data");
+    } catch (error) {
+      console.error("Error accessing media devices:", error);
+    }
+  };
+  
+  
+  hangupButton.onclick = async () => {
+    hangup();
+    // signaling.postMessage({type: 'bye'});
+  };
+  
+  async function hangup() {
+    if (pc) {
+      pc.close();
+      pc = null;
+    }
+    localStream.getTracks().forEach(track => track.stop());
+    localStream = null;
+    startButton.disabled = false;
+    hangupButton.disabled = true;
+  };
+  
+function createPeerConnection(sender) {
+    pc = new RTCPeerConnection(configuration);
+    console.log("before the ice starts listening for candidates"); 
+    pc.onicecandidate = e => {
+      console.log("getting ice candidate");
+      // Check if e.candidate is not null
+      if (e.candidate) {
+        const message = {
+            id: id,
+            sender: sender,
+            type: 'candidate',
+            candidate: e.candidate.candidate,
+            sdpMid: e.candidate.sdpMid,
+            sdpMLineIndex: e.candidate.sdpMLineIndex,
+        };
+  
+        console.log("got ice candidate: " + JSON.stringify(message));
+        setTimeout(async ()=>await sendMessage(JSON.stringify(message)), 5000);
+        
+      }
+    };
+    console.log("getting tracks");
+    pc.ontrack = e => remoteVideo.srcObject = e.streams[0];
+    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+  }
+  
+  async function makeCall(sender) {
+    const offer = await pc.createOffer();
+    console.log("Sending Offer..."+"Offer: "+JSON.stringify({type: offer.type, sdp: offer.sdp}));
+    sendMessage(JSON.stringify({id: id, sender: sender, type: offer.type, sdp: offer.sdp}));
+    await pc.setLocalDescription(offer);
+  }
+
+  async function handleAnswer(answer) {
+    console.log('Handling answer...');
+    console.log("Recieved Answer: "+answer);
+    await pc.setRemoteDescription(new RTCSessionDescription({type: answer.type, sdp: answer.sdp}));
+    isAnswerSet = true;
+    console.log('Remote description set successfully.');
+  }
+
+  function handleIce(ice){
+  if(pc.remoteDescription){
+    console.log("adding ice to RTCConnection");
+    pc.addIceCandidate(ice);
+  }else{
+    console.log("adding ice to queue");
+    iceCandidateQueue.push(ice);
+  }
+}
+//set timeout to check for offer being set
+let timer = setTimeout(checkOffer,500);
+function checkOffer(){
+  if(isAnswerSet){
+  
+      if (iceCandidateQueue.length !== 0) {
+        // Iterate through the array without modifying it during the loop
+        for (let i = 0; i < iceCandidateQueue.length; i++) {
+            handleIce(iceCandidateQueue[i]);
+        }
+    
+        // Clear the array after processing all elements
+        iceCandidateQueue.length = 0;
+      }
+    clearTimeout(timer);
+    }
+  }
+
+  function extractIcelistValues(inputString) {
+    const icelistQueue = [];
+  
+    // Find the index of the first occurrence of '"icelist":['
+    let startIndex = inputString.indexOf('"icelist":[');
+  
+    // Continue until there are no more occurrences of '"icelist":['
+    while (startIndex !== -1) {
+      // Find the index of the matching "]}" for the current '"icelist":['
+      let endIndex = inputString.indexOf('],', startIndex);
+  
+      // If a matching "]}" is found, extract the substring between '"icelist":[' and ']}' (inclusive)
+      if (endIndex !== -1) {
+        const icelistString = "{"+inputString.substring(startIndex, endIndex + 1)+"}";
+        
+        // Push the extracted icelist value to the array queue
+        icelistQueue.push(icelistString);
+  
+        // Find the index of the next occurrence of '"icelist":[' to continue the loop
+        startIndex = inputString.indexOf('"icelist":[', endIndex);
+      } else {
+        break;
+      }
+    }
+  
+    return icelistQueue;
+  }
+
+  function extractValuesByKey(jsonString, key) {
+    const valuesArray = [];
+    const regex = new RegExp(`"${key}"\\s*:\\s*("(.*?)"|\\d*|true|false|null)`, 'g');
+    let match;
+  
+    while ((match = regex.exec(jsonString)) !== null) {
+      const [, value] = match[0].match(/:\s*"(.*)"/) || [, match[0]];
+      valuesArray.push(value);
+    }
+  
+    return valuesArray;
+  }

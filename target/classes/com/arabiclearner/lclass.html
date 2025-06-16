@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Class Page</title>
+<link href="style.css" rel="stylesheet" type="text/css">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+     <meta name="google-adsense-account" content="ca-pub-5208621179282095">
+</head>
+
+<body>
+  <div class="modal-panel">
+    <div id="x-close" style="display: inherit; justify-content: flex-end; cursor: pointer; margin-bottom: 10px; font-weight: bold;">
+      <span style="background-color: rgb(1, 99, 66); padding: 5px; border-radius: 50%; width: 10px; height: 10px; text-align: center; display: flex; align-items: center; color: white;">x</span>
+    </div>
+  </div>
+	<header></header>
+        <div class="main-panel">
+        	<div class="f-panel">
+            	<div class="f-item" id="preview" onscroll="handleScroll(this)"></div>
+                <div class="s-item" id="preview-control">
+                	<input type="button" id="endClassBtn" value="End Class"/>
+                </div>
+              <div class="u-item">
+                <div id="upload-data"></div>
+                <div class="u-item-hide">
+                  <label for="fileInput">Choose a file:</label>
+                  <input type="file" id="fileInput">
+                  <button class="rs-btn" id="u-btn">Upload</button>
+                </div>
+                <div class="u-item-hide">
+                  <label for="fileInput" style="margin-right: 5px;">Visit a link:</label>
+                  <input type="text" id="linkInput">
+                  <button class="rs-btn" id="v-btn">Visit</button>
+                </div>
+                <div class="lg-rs-btn">
+                  <button class="rs-btn" onclick="showItem(0)">Upload A File</button>
+                  <button class="rs-btn" onclick="showItem(1)">Visit A Resource Website</button>
+                  <button class="rs-btn" id="editResource">Create Editable Resource</button>
+                </div>
+                
+              </div>
+            </div>
+            <div class="s-panel" id="targetDiv1" onscroll="handleScroll(this)">
+            	<!-- <div class="t-item"></div> -->
+            </div>
+            <div class="t-panel" id="t-panel">
+            	<div class="fo-item" id="chat" onscroll="handleScroll(this)"></div>
+                <div class="fi-item">
+                	<!-- <form action="/class.html" method="post"> -->
+                    	<input type="text" class="chat" name="chatMessage" id="message">
+                        <input type="submit" class="chat-btn" name="chatBtn" id="chatBtn" value="Send" onclick="setMessage()">
+                    <!-- </form> -->
+                </div>
+            </div>
+        </div>
+    <footer>&copy; generalclass.net</footer>
+</body>
+</html>
+<script>
+    function handleScroll(container) {
+      if (container.scrollHeight > container.clientHeight) {
+        container.style.overflowY = 'scroll';
+      } else {
+        container.style.overflowY = 'auto';
+      }
+    }
+
+    function showItem(no){
+      var items = document.querySelectorAll(".u-item-hide");
+      items.forEach(element => {
+        element.style.display = "none";
+      });
+      items[no].style.display = "flex";
+    }
+    
+  </script>
+<script src="lengine.js"></script>
+<script src="adapter-latest.js"></script>
